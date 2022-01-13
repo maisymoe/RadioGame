@@ -1,27 +1,21 @@
-enum NetcodeEventType {
+console.log("Initialising...");
+
+enum NetcodeEvent {
     Connect
 }
 
-interface NetcodeJSONObject {
-    eventType: NetcodeEventType;
-    position: {
-        x: number;
-        y: number;
-    }
+function sendNetcodeEvent(netcodeArray: number[]) {
+    radio.sendBuffer(msgpack.packNumberArray(netcodeArray));
 }
 
 // Set the radio group
-radio.setGroup(45);
-
-// Initialise variables
-const existingSprites = [];
+radio.setGroup(64);
 
 // Register a local player
 const localX = Math.randomRange(0, 5);
 const localY = Math.randomRange(0, 5);
 
 const localPlayer = game.createSprite(localX, localY);
-existingSprites.push(localPlayer);
 
 // Register handlers for input
 input.onButtonPressed(Button.A, () => {
@@ -39,14 +33,16 @@ input.onButtonPressed(Button.AB, () => {
     }
 })
 
-// Remote player setup
-radio.onReceivedString((recievedString: string) => {
-    let netJSON: NetcodeJSONObject;
+// Send position over radio
+sendNetcodeEvent([NetcodeEvent.Connect, localPlayer.x(), localPlayer.y()]);
 
-    // Attempt to parse netcode data as JSON
-    try {
-        JSON.parse(recievedString);
-    } catch(error) {
-        console.log("Failed to parse netcode JSON, ignoring")
+// Remote player setup
+radio.onReceivedBuffer((recievedBuffer: Buffer) => {
+    const netData = msgpack.unpackNumberArray(recievedBuffer);
+
+    if (netData[0] === NetcodeEvent.Connect) {
+        const networkPlayer = game.createSprite(netData[1], netData[2]);
+
+        sendNetcodeEvent([NetcodeEvent.Connect, localPlayer.x(), localPlayer.y()]);
     }
 })
