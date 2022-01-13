@@ -7,12 +7,9 @@
         "microphone": "*"
     },
     "files": [
-        "main.ts",
-        "README.md"
+        "main.ts"
     ],
-    "testFiles": [
-        "test.ts"
-    ],
+    "testFiles": [],
     "targetVersions": {
         "target": "4.0.16",
         "targetId": "microbit"
